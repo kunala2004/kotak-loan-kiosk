@@ -17,9 +17,9 @@ from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 
 # langchain-groq is optional. If it (or its langchain-core transitive version)
-# isn't installed, this module still loads — run_kiosk_agent just returns a
-# graceful fallback. The main backend + the LangGraph review agent don't
-# depend on this path.
+# isn't installed, this module still loads — run_kiosk_agent returns a graceful
+# fallback. Module-level decorator / class / instance uses all reference the
+# stubs below so nothing explodes at import time.
 try:
     from langchain_groq import ChatGroq
     from langchain_core.tools import tool
@@ -28,6 +28,18 @@ try:
 except Exception as _e:
     _LANGCHAIN_GROQ_AVAILABLE = False
     _IMPORT_ERROR = str(_e)
+
+    # Stubs so @tool decorations and type references don't explode at import.
+    ChatGroq = None  # type: ignore
+
+    def tool(fn):  # type: ignore
+        return fn
+
+    class _StubMessage:  # type: ignore
+        def __init__(self, *args, **kwargs):
+            raise RuntimeError("langchain-groq not installed — chat is disabled")
+
+    HumanMessage = AIMessage = ToolMessage = _StubMessage
 
 
 # ── State ──────────────────────────────────────────────────────────────────────
