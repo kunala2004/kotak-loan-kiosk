@@ -3,159 +3,286 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
 import { useKioskStore } from "@/lib/store"
 import { useSpeech } from "@/lib/useSpeech"
+import { useAvatarContext } from "@/lib/avatarContext"
 
-const PRIYA_IMG = "https://randomuser.me/api/portraits/women/44.jpg"
+// Captured frame of Lisa (our live Azure avatar) — lives at /public so the
+// static photo and the WebRTC video have the same face. No jarring swap.
+const PRIYA_PLACEHOLDER = "/priya-placeholder.png"
+const PRIYA_FALLBACK    = "https://randomuser.me/api/portraits/women/44.jpg"
 
 const GREETING =
-  "Hi! I'm Priya from Kotak Bank. Let's find your dream car together."
+  "Hello. I'm Priya, your Kotak loan assistant. Let's find your dream car together."
 
 export default function IdleScreen() {
   const { setStage } = useKioskStore()
-  const { speak, speaking, subtitle } = useSpeech()
-  const [tapped, setTapped] = useState(false)
+  const avatar = useAvatarContext()
+  const fallbackSpeech = useSpeech()
+  const [advancing, setAdvancing] = useState(false)
+  const greetedRef   = useRef(false)
   const hasSpokenRef = useRef(false)
 
-  // Advance to car catalog after Priya finishes her greeting.
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const audioRef = useRef<HTMLAudioElement>(null)
+
+  // Note: auto-start happens in AvatarProvider — WebRTC handshake begins
+  // the instant the kiosk loads, not on tap. We just wire streams here.
+  // Wire WebRTC streams into the video/audio elements as they arrive
+  useEffect(() => {
+    if (videoRef.current && avatar.videoStream) videoRef.current.srcObject = avatar.videoStream
+  }, [avatar.videoStream])
+  useEffect(() => {
+    if (audioRef.current && avatar.audioStream) audioRef.current.srcObject = avatar.audioStream
+  }, [avatar.audioStream])
+
+  const avatarActive   = Boolean(avatar.videoStream) && avatar.state !== "failed"
+  const avatarStarting = avatar.state === "starting" || (avatar.state === "idle" && !avatarActive)
+  const avatarFailed   = avatar.state === "failed"
+  const avatarSpeaking = avatar.state === "speaking"
+  const speaking       = avatarSpeaking || fallbackSpeech.speaking
+  const subtitle       = avatarSpeaking ? GREETING : fallbackSpeech.subtitle
+
+  // Greeting fires on first tap — browser autoplay policy blocks audio
+  // without a user gesture. WebRTC handshake itself runs on page load from
+  // AvatarProvider, so "tap" just unlocks the audio element.
+  const handleBegin = async () => {
+    if (greetedRef.current) return
+    greetedRef.current = true
+    setAdvancing(true)
+
+    // Unlock the audio element
+    try { await audioRef.current?.play() } catch {}
+
+    // Fire greeting — avatar if ready, else Neerja fallback. If avatar is
+    // still connecting, the useEffect below speaks the moment it becomes ready.
+    if (avatar.state === "ready" || avatar.state === "speaking") {
+      avatar.speak(GREETING)
+    } else if (avatar.state === "failed") {
+      fallbackSpeech.speak(GREETING)
+    }
+
+    // Hard timeout — always advance to car catalog 9 seconds after tap,
+    // regardless of what happened with the speech. Gives Lisa time to finish
+    // the greeting (~5s) with a comfortable buffer.
+    setTimeout(() => setStage("car_catalog"), 9000)
+  }
+
+  // If user tapped while avatar was still warming up, speak once it's ready.
+  useEffect(() => {
+    if (!greetedRef.current) return
+    if (hasSpokenRef.current) return
+    if (avatar.state === "ready") {
+      avatar.speak(GREETING)
+    } else if (avatar.state === "failed") {
+      fallbackSpeech.speak(GREETING)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [avatar.state])
+
+  // Track whether we've actually seen her speak (for the hard-timeout skip
+  // path — not strictly needed anymore but kept for diagnostics).
   useEffect(() => {
     if (speaking) hasSpokenRef.current = true
-    if (tapped && hasSpokenRef.current && !speaking) {
-      const t = setTimeout(() => setStage("car_catalog"), 500)
-      return () => clearTimeout(t)
-    }
-  }, [speaking, tapped, setStage])
-
-  const handleStart = () => {
-    if (tapped) return
-    setTapped(true)
-    hasSpokenRef.current = false
-    speak(GREETING)
-  }
+  }, [speaking])
 
   return (
     <motion.div
-      onClick={handleStart}
-      className="w-full h-full flex flex-col items-center justify-center relative overflow-hidden cursor-pointer"
+      onClick={handleBegin}
+      className="w-full h-full relative overflow-hidden cursor-pointer bg-[#0A0B0E]"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      {/* Ambient background orbs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* Hidden WebRTC audio sink — only plays if avatar is started later */}
+      <audio ref={audioRef} autoPlay playsInline className="hidden" />
+
+      {/* Background — subtle, not distracting */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(227,24,55,0.08),_transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_rgba(245,166,35,0.04),_transparent_55%)]" />
         <motion.div
-          className="absolute w-[600px] h-[600px] rounded-full bg-[#E31837]/10 blur-3xl"
-          animate={{ x: [-100, 100, -100], y: [-50, 50, -50] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-          style={{ top: "10%", left: "20%" }}
-        />
-        <motion.div
-          className="absolute w-[400px] h-[400px] rounded-full bg-[#F5A623]/8 blur-3xl"
-          animate={{ x: [100, -100, 100], y: [50, -50, 50] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-          style={{ bottom: "20%", right: "15%" }}
+          className="absolute top-[18%] left-[8%] w-[480px] h-[480px] rounded-full bg-[#E31837]/6 blur-3xl"
+          animate={{ x: [0, 40, 0], y: [0, -30, 0] }}
+          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
         />
       </div>
 
-      {/* Floating cars */}
-      {["🚗", "🚙", "🏎️"].map((car, i) => (
-        <motion.div
-          key={i}
-          className="absolute text-6xl opacity-10 pointer-events-none"
-          animate={{ x: ["-10vw", "110vw"], y: [0, -20, 0, 20, 0] }}
-          transition={{
-            x: { duration: 12 + i * 4, repeat: Infinity, ease: "linear", delay: i * 4 },
-            y: { duration: 3, repeat: Infinity, ease: "easeInOut" },
-          }}
-          style={{ top: `${30 + i * 20}%` }}
-        >
-          {car}
-        </motion.div>
-      ))}
-
-      {/* Hero content */}
-      <div className="relative z-10 flex flex-col items-center text-center px-8 max-w-4xl">
-        <motion.div
-          className="relative mb-8"
-          initial={{ scale: 0.85, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.9, ease: "easeOut" }}
-        >
+      {/* Editorial two-column layout */}
+      <div className="relative z-10 w-full h-full grid grid-cols-2 gap-0">
+        {/* LEFT — hero portrait */}
+        <div className="relative flex items-center justify-center pl-12">
           <motion.div
-            className={`absolute inset-0 rounded-full transition-all ${
-              speaking
-                ? "ring-4 ring-[#E31837] shadow-[0_0_80px_rgba(227,24,55,0.55)]"
-                : "ring-2 ring-white/10"
-            }`}
-            animate={speaking ? { scale: [1, 1.04, 1] } : { scale: 1 }}
-            transition={{ duration: 1.8, repeat: speaking ? Infinity : 0, ease: "easeInOut" }}
-          />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={PRIYA_IMG}
-            alt="Priya, your Kotak loan assistant"
-            className="w-56 h-56 rounded-full object-cover relative z-10 border-4 border-[#0D1117]"
-          />
-          {speaking && (
-            <span
-              className="absolute -inset-2 rounded-full border-2 border-[#E31837]/40 animate-ping z-0"
-              style={{ animationDuration: "1.6s" }}
+            className="relative w-full max-w-[540px]"
+            style={{ aspectRatio: "3 / 4" }}
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.9, ease: [0.25, 0.8, 0.3, 1] }}
+          >
+            {/* Base layer — the static Priya portrait. Always rendered so there
+                is never an empty state. Video layers on top when avatar is live. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={PRIYA_PLACEHOLDER}
+              onError={(e) => { (e.currentTarget as HTMLImageElement).src = PRIYA_FALLBACK }}
+              alt="Priya"
+              className="absolute inset-0 w-full h-full object-cover object-top rounded-t-[50%] bg-[#14151A]"
             />
-          )}
-        </motion.div>
 
-        <motion.p
-          className="text-white/50 text-sm uppercase tracking-[0.3em] mb-4"
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3 }}
-        >
-          Welcome to Kotak Bank
-        </motion.p>
+            {/* Avatar video overlay — fades in once the stream is live, fades
+                back to 0 if it fails. The photo beneath stays as the ground truth.
+                MUTED so browser autoplay policy lets the video play without
+                user gesture. The audio track plays through the <audio> element. */}
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className={`absolute inset-0 w-full h-full object-cover rounded-t-[50%] bg-transparent transition-opacity duration-1000 ${
+                avatarActive ? "opacity-100" : "opacity-0"
+              }`}
+            />
 
-        <motion.h1
-          className="text-white font-black text-6xl leading-tight mb-4"
-          initial={{ y: 30, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.5 }}
-        >
-          Drive home your
-          <span className="block text-[#E31837]">dream car today.</span>
-        </motion.h1>
+            {/* Soft connecting halo during WebRTC handshake */}
+            {avatarStarting && !avatarActive && (
+              <motion.div
+                className="absolute top-[30%] left-1/2 -translate-x-1/2 w-40 h-40 rounded-full border-2 border-[#E31837]/55 pointer-events-none"
+                animate={{ scale: [1, 1.3, 1], opacity: [0.2, 0.7, 0.2] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              />
+            )}
 
-        <motion.p
-          className="text-white/50 text-xl mb-10"
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.7 }}
-        >
-          Get your car loan pre-approved in under 5 minutes
-        </motion.p>
+            {/* Subtle speaking halo */}
+            {speaking && (
+              <motion.div
+                className="absolute inset-0 rounded-t-[50%] ring-2 ring-[#E31837]/55 pointer-events-none"
+                animate={{ opacity: [0.3, 0.7, 0.3] }}
+                transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+              />
+            )}
 
-        <motion.button
-          onClick={(e) => { e.stopPropagation(); handleStart() }}
-          className="gradient-red glow-red text-white font-bold text-xl px-16 py-5 rounded-2xl pulse-red disabled:opacity-70"
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.9 }}
-          whileTap={{ scale: 0.96 }}
-          disabled={tapped}
-        >
-          {tapped ? "Starting…" : "Let's Get Started →"}
-        </motion.button>
+            {/* Minimal live-status pill (top-right of portrait) — only visible
+                while something is happening, avoids duplicating the label that's
+                baked into Lisa's captured screenshot. */}
+            {(speaking || avatar.state === "starting" || avatarActive) && (
+              <div className="absolute top-4 right-4 flex items-center gap-2 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
+                <span className={`w-1.5 h-1.5 rounded-full ${
+                  speaking                      ? "bg-[#E31837] animate-pulse" :
+                  avatar.state === "starting"   ? "bg-amber-400 animate-pulse" :
+                                                  "bg-green-400"
+                }`} />
+                <span className="text-white/70 text-[10px] font-medium tracking-wider uppercase">
+                  {speaking                     ? "Speaking" :
+                   avatar.state === "starting"  ? "Connecting" :
+                                                  "Live"}
+                </span>
+              </div>
+            )}
+          </motion.div>
+        </div>
+
+        {/* RIGHT — copy + CTA */}
+        <div className="flex flex-col justify-center pr-20 pl-8">
+          <motion.div
+            className="flex items-center gap-3 mb-10"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <div className="w-1 h-6 bg-[#E31837] rounded-full" />
+            <span className="text-white/50 text-[11px] uppercase tracking-[0.35em] font-semibold">
+              Kotak · Showroom Kiosk
+            </span>
+          </motion.div>
+
+          <motion.h1
+            className="text-white font-black text-7xl leading-[1.05] tracking-tight mb-8"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35, duration: 0.7, ease: [0.25, 0.8, 0.3, 1] }}
+          >
+            Drive home
+            <br />
+            <span className="text-white/60">your dream car,</span>
+            <br />
+            <span className="text-[#E31837]">today.</span>
+          </motion.h1>
+
+          <motion.p
+            className="text-white/60 text-lg leading-relaxed mb-12 max-w-md"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+          >
+            Pre-approved in under 5 minutes. No paperwork until you drive.
+          </motion.p>
+
+          {/* Feature strip — tight, editorial */}
+          <motion.div
+            className="flex items-center gap-8 mb-14"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.75 }}
+          >
+            {[
+              { big: "5", small: "min", sub: "to pre-approval" },
+              { big: "0", small: "₹",   sub: "upfront paperwork" },
+              { big: "20", small: "",   sub: "cars to choose from" },
+            ].map((f, i) => (
+              <div key={i} className="flex flex-col">
+                <div className="flex items-baseline gap-1 mb-1">
+                  <span className="text-white font-black text-3xl">{f.big}</span>
+                  {f.small && <span className="text-white/40 text-sm font-medium">{f.small}</span>}
+                </div>
+                <span className="text-white/40 text-[11px] uppercase tracking-wider">{f.sub}</span>
+              </div>
+            ))}
+          </motion.div>
+
+          <motion.button
+            onClick={(e) => { e.stopPropagation(); handleBegin() }}
+            className={`group self-start inline-flex items-center gap-3 px-8 py-4 rounded-full font-semibold text-base transition-all ${
+              greetedRef.current
+                ? "bg-white/10 text-white/50 cursor-default"
+                : "bg-white text-[#0A0B0E] hover:bg-[#E31837] hover:text-white"
+            }`}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.9 }}
+            whileTap={!greetedRef.current ? { scale: 0.97 } : {}}
+            disabled={greetedRef.current}
+          >
+            <span>
+              {advancing                   ? "Starting your journey…" :
+               avatar.state === "speaking" ? "Priya is speaking…" :
+               greetedRef.current          ? "Connecting Priya…" :
+                                             "Begin"}
+            </span>
+            {!greetedRef.current && <span className="transition-transform group-hover:translate-x-1">→</span>}
+          </motion.button>
+
+          <motion.p
+            className="text-white/25 text-[11px] mt-6 tracking-wide"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.1 }}
+          >
+            Priya is connecting in the background · Tap Begin when ready
+          </motion.p>
+        </div>
       </div>
 
-      {/* Subtitle — only shows after tap, while Priya speaks */}
+      {/* Subtitle strip — only while Priya speaks */}
       <AnimatePresence>
         {subtitle && (
           <motion.div
             key={subtitle}
-            className="absolute bottom-24 left-0 right-0 flex justify-center px-8 pointer-events-none z-20"
-            initial={{ y: 30, opacity: 0 }}
+            className="absolute bottom-10 left-1/2 -translate-x-1/2 pointer-events-none z-30"
+            initial={{ y: 16, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 10, opacity: 0 }}
-            transition={{ duration: 0.35 }}
+            exit={{ y: 8, opacity: 0 }}
+            transition={{ duration: 0.3 }}
           >
-            <div className="bg-black/70 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10 max-w-2xl">
-              <p className="text-white/90 text-lg text-center leading-relaxed">
+            <div className="bg-white/5 backdrop-blur-xl px-6 py-3 rounded-full border border-white/10 shadow-2xl">
+              <p className="text-white/90 text-sm text-center font-medium tracking-wide max-w-xl">
                 {subtitle}
               </p>
             </div>
@@ -163,14 +290,10 @@ export default function IdleScreen() {
         )}
       </AnimatePresence>
 
-      <motion.div
-        className="absolute bottom-6 left-0 right-0 text-center pointer-events-none"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.5 }}
-      >
-        <p className="text-white/20 text-xs">Kotak Mahindra Bank · RBI Licensed · Your data is safe</p>
-      </motion.div>
+      {/* Minimal footer */}
+      <div className="absolute bottom-4 right-8 text-white/15 text-[10px] tracking-widest uppercase">
+        Kotak Mahindra Bank · RBI Licensed
+      </div>
     </motion.div>
   )
 }
