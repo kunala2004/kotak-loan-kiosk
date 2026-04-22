@@ -4,17 +4,12 @@ pydantic==2.8.2
 python-dotenv==1.0.1
 httpx==0.27.2
 
-# LLM SDKs
+# LLM SDKs (used directly in llm_reasoner.py + llm_client.py)
 openai==1.51.0
-groq==0.37.1
 
-# LangGraph (1.x for interrupt/Command primitives)
+# LangGraph 1.x — for the agentic review graph (interrupt/Command primitives)
+# langchain-core comes transitively from langgraph; don't pin here, avoids resolver conflicts.
 langgraph==1.1.9
-langgraph-checkpoint==2.1.2
-langgraph-prebuilt==1.0.10
-langchain-core==1.3.0
-langchain-groq==0.2.0
-langsmith==0.7.33
 
 # Follow-up agent
 apscheduler==3.10.4

@@ -6,16 +6,28 @@ Mode 1: LangGraph for agent logic, structured UI handles everything else.
 State is in-memory per session. No persistence — kiosk always resets for new customer.
 """
 import json
-from typing import TypedDict, Annotated
-from langgraph.graph import StateGraph, START, END
-from langgraph.graph.message import add_messages
-from langchain_groq import ChatGroq
-from langchain_core.tools import tool
-from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
 import os
+from typing import TypedDict, Annotated
 
 from engines.emi_calculator import get_emi_for_display
 from engines.eligibility_engine import check_eligibility, get_income_midpoint
+
+# LangGraph core — required
+from langgraph.graph import StateGraph, START, END
+from langgraph.graph.message import add_messages
+
+# langchain-groq is optional. If it (or its langchain-core transitive version)
+# isn't installed, this module still loads — run_kiosk_agent just returns a
+# graceful fallback. The main backend + the LangGraph review agent don't
+# depend on this path.
+try:
+    from langchain_groq import ChatGroq
+    from langchain_core.tools import tool
+    from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
+    _LANGCHAIN_GROQ_AVAILABLE = True
+except Exception as _e:
+    _LANGCHAIN_GROQ_AVAILABLE = False
+    _IMPORT_ERROR = str(_e)
 
 
 # ── State ──────────────────────────────────────────────────────────────────────
@@ -176,7 +188,7 @@ def build_kiosk_graph():
     return graph.compile()
 
 
-kiosk_graph = build_kiosk_graph()
+kiosk_graph = build_kiosk_graph() if _LANGCHAIN_GROQ_AVAILABLE else None
 
 
 # ── Public Interface ──────────────────────────────────────────────────────────
@@ -190,7 +202,18 @@ def run_kiosk_agent(
     """
     Called by FastAPI when customer sends freeform text/voice input.
     Returns agent response and any extracted structured data.
+    Returns a graceful fallback when langchain-groq isn't installed.
     """
+    if not _LANGCHAIN_GROQ_AVAILABLE or kiosk_graph is None:
+        return {
+            "response": (
+                "Hi! I'm here to help — but our live chat is being upgraded. "
+                "You can continue tapping through the kiosk."
+            ),
+            "messages": message_history,
+            "extracted_data": {},
+        }
+
     messages = message_history + [HumanMessage(content=user_message)]
 
     result = kiosk_graph.invoke({
