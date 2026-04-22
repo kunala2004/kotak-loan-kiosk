@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+:root {
+  --kotak-red: #E31837;
+  --kotak-red-dark: #B01228;
+  --kotak-gold: #F5A623;
+  --bg-primary: #080B14;
+  --bg-card: rgba(255, 255, 255, 0.04);
+  --bg-card-hover: rgba(255, 255, 255, 0.08);
+  --border: rgba(255, 255, 255, 0.08);
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --text-muted: rgba(255, 255, 255, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.glass {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.glass-hover:hover {
+  background: var(--bg-card-hover);
+  border-color: rgba(255, 255, 255, 0.15);
+  transition: all 0.2s ease;
+}
+
+.gradient-red {
+  background: linear-gradient(135deg, #E31837 0%, #B01228 100%);
+}
+
+.glow-red {
+  box-shadow: 0 0 40px rgba(227, 24, 55, 0.35);
+}
+
+.glow-gold {
+  box-shadow: 0 0 30px rgba(245, 166, 35, 0.4);
+}
+
+::-webkit-scrollbar { display: none; }
+* { -ms-overflow-style: none; scrollbar-width: none; }
+
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 100%);
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite linear;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.float { animation: float 3s ease-in-out infinite; }
+
+@keyframes pulse-red {
+  0%, 100% { box-shadow: 0 0 20px rgba(227,24,55,0.3); }
+  50% { box-shadow: 0 0 50px rgba(227,24,55,0.6); }
+}
+
+.pulse-red { animation: pulse-red 2s ease-in-out infinite; }
+
+@keyframes roadScroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}

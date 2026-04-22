@@ -1,0 +1,100 @@
+{
+  "A": {
+    "name": "Rahul Sharma",
+    "dob": "12-Mar-1994",
+    "age": 30,
+    "cibil": 782,
+    "employment_verified": "Salaried - TCS Limited",
+    "monthly_income_verified": 85000,
+    "annual_income": 1020000,
+    "existing_loans": [],
+    "existing_emi_total": 0,
+    "credit_cards": 1,
+    "credit_utilization": 18,
+    "missed_payments": 0,
+    "enquiries_last_6mo": 1,
+    "address": "Flat 4B, Suncity Apartments, Powai, Mumbai - 400076",
+    "profile_label": "Excellent"
+  },
+  "B": {
+    "name": "Priya Mehta",
+    "dob": "05-Aug-1990",
+    "age": 34,
+    "cibil": 724,
+    "employment_verified": "Salaried - Infosys BPM",
+    "monthly_income_verified": 65000,
+    "annual_income": 780000,
+    "existing_loans": [
+      { "type": "Personal Loan", "emi": 8200, "outstanding": 285000, "bank": "HDFC Bank" }
+    ],
+    "existing_emi_total": 8200,
+    "credit_cards": 2,
+    "credit_utilization": 32,
+    "missed_payments": 0,
+    "enquiries_last_6mo": 2,
+    "address": "203, Green Valley Society, Whitefield, Bangalore - 560066",
+    "profile_label": "Good"
+  },
+  "C": {
+    "name": "Vikram Patel",
+    "dob": "22-Nov-1988",
+    "age": 36,
+    "cibil": 668,
+    "employment_verified": "Self-Employed - Retail Business",
+    "monthly_income_verified": 55000,
+    "annual_income": 660000,
+    "existing_loans": [
+      { "type": "Credit Card EMI", "emi": 9500, "outstanding": 95000, "bank": "Axis Bank" },
+      { "type": "Personal Loan", "emi": 4500, "outstanding": 72000, "bank": "Bajaj Finance" }
+    ],
+    "existing_emi_total": 14000,
+    "credit_cards": 3,
+    "credit_utilization": 58,
+    "missed_payments": 1,
+    "enquiries_last_6mo": 4,
+    "address": "12, Shashtri Nagar, Ahmedabad - 380013",
+    "profile_label": "Average"
+  },
+  "D": {
+    "name": "Sneha Gupta",
+    "dob": "14-Feb-1992",
+    "age": 32,
+    "cibil": 638,
+    "employment_verified": "Salaried - Small Firm",
+    "monthly_income_verified": 48000,
+    "annual_income": 576000,
+    "existing_loans": [
+      { "type": "Two Wheeler Loan", "emi": 5800, "outstanding": 45000, "bank": "Bajaj Finance" },
+      { "type": "Personal Loan", "emi": 8200, "outstanding": 156000, "bank": "ICICI Bank" },
+      { "type": "Credit Card EMI", "emi": 4000, "outstanding": 38000, "bank": "SBI Card" }
+    ],
+    "existing_emi_total": 18000,
+    "credit_cards": 2,
+    "credit_utilization": 72,
+    "missed_payments": 2,
+    "enquiries_last_6mo": 6,
+    "address": "45B, New Colony, Jaipur - 302001",
+    "profile_label": "Borderline"
+  },
+  "E": {
+    "name": "Rajan Kumar",
+    "dob": "30-Jul-1985",
+    "age": 39,
+    "cibil": 584,
+    "employment_verified": "Self-Employed",
+    "monthly_income_verified": 35000,
+    "annual_income": 420000,
+    "existing_loans": [
+      { "type": "Personal Loan", "emi": 12000, "outstanding": 245000, "bank": "Kotak Bank" },
+      { "type": "Credit Card", "emi": 8000, "outstanding": 95000, "bank": "HDFC Bank" },
+      { "type": "Consumer Loan", "emi": 6000, "outstanding": 48000, "bank": "Bajaj Finance" }
+    ],
+    "existing_emi_total": 26000,
+    "credit_cards": 3,
+    "credit_utilization": 89,
+    "missed_payments": 5,
+    "enquiries_last_6mo": 8,
+    "address": "78, Old Market Road, Patna - 800001",
+    "profile_label": "High Risk"
+  }
+}

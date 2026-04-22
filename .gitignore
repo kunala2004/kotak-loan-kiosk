@@ -1,0 +1,60 @@
+# ── Secrets (NEVER commit) ─────────────────────────────
+.env
+.env.local
+.env.*.local
+api_key
+*.key
+*.pem
+.secrets/
+
+# ── Node / Next.js ──────────────────────────────────────
+node_modules/
+.next/
+out/
+dist/
+build/
+.vercel/
+.turbo/
+*.tsbuildinfo
+next-env.d.ts
+
+# ── Python ─────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ── Runtime caches (regenerated) ───────────────────────
+backend/cache/
+backend/data/sessions.json
+
+# ── IDE / OS ───────────────────────────────────────────
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# ── Logs ───────────────────────────────────────────────
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ── Claude Code local ──────────────────────────────────
+.claude/
+
+# ── Misc project files we don't want on GitHub ─────────
+WhatsApp Image*.jpeg
+WhatsApp Image*.jpg

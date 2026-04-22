@@ -1,0 +1,39 @@
+{
+  "foir_max": 0.55,
+  "ltv_max_new_car": 0.85,
+  "min_cibil_eligible": 650,
+  "min_cibil_best_rate": 750,
+  "min_loan_amount": 100000,
+  "max_loan_amount": 5000000,
+  "min_tenure_months": 24,
+  "max_tenure_months": 84,
+  "min_age": 21,
+  "max_age_at_loan_end": 65,
+
+  "min_income_by_employment": {
+    "Salaried Corporate": 25000,
+    "Salaried Government": 20000,
+    "Self-Employed": 40000,
+    "Business Owner": 40000
+  },
+
+  "rate_matrix": [
+    { "cibil_min": 750, "cibil_max": 900, "rate": 8.75 },
+    { "cibil_min": 700, "cibil_max": 749, "rate": 9.25 },
+    { "cibil_min": 650, "cibil_max": 699, "rate": 10.00 },
+    { "cibil_min": 600, "cibil_max": 649, "rate": 11.50 },
+    { "cibil_min": 0,   "cibil_max": 599, "rate": null }
+  ],
+
+  "income_range_midpoints": {
+    "Under 30K": 25000,
+    "30K - 50K": 40000,
+    "50K - 75K": 62500,
+    "75K - 1L": 87500,
+    "Above 1L": 125000
+  },
+
+  "processing_fee_percent": 0.50,
+  "foreclosure_charges_percent": 2.0,
+  "part_payment_allowed": true
+}

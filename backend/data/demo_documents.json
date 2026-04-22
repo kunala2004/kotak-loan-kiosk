@@ -1,0 +1,173 @@
+{
+  "A": {
+    "aadhaar_ekyc": {
+      "name": "Rahul Sharma",
+      "dob": "12-Mar-1994",
+      "address": "Flat 4B, Suncity Apartments, Powai, Mumbai - 400076",
+      "photo_url": "https://randomuser.me/api/portraits/men/32.jpg",
+      "masked_aadhaar": "XXXX-XXXX-1234",
+      "gender": "Male",
+      "verified_via": "UIDAI OTP"
+    },
+    "account_aggregator": {
+      "primary_bank": "HDFC Bank",
+      "account_type": "Salary Account",
+      "account_masked": "XXXX8921",
+      "months_covered": 6,
+      "statements_from": "2025-10-22",
+      "statements_to":   "2026-04-22",
+      "avg_monthly_credit": 85200,
+      "avg_monthly_debit":  58400,
+      "existing_emi_debits": 0,
+      "inflow_consistency": "Regular salary credit from TCS Limited",
+      "bounce_count": 0
+    },
+    "itr_salary": {
+      "employer":          "TCS Limited",
+      "assessment_year":   "2025-26",
+      "annual_income":     1020000,
+      "tds_paid":          102000,
+      "professional_tax":  2500,
+      "form_16_verified":  true,
+      "form_26as_verified": true
+    }
+  },
+
+  "B": {
+    "aadhaar_ekyc": {
+      "name": "Priya Mehta",
+      "dob": "05-Aug-1990",
+      "address": "203, Green Valley Society, Whitefield, Bangalore - 560066",
+      "photo_url": "https://randomuser.me/api/portraits/women/44.jpg",
+      "masked_aadhaar": "XXXX-XXXX-5678",
+      "gender": "Female",
+      "verified_via": "UIDAI OTP"
+    },
+    "account_aggregator": {
+      "primary_bank": "Kotak Mahindra Bank",
+      "account_type": "Salary Account",
+      "account_masked": "XXXX3304",
+      "months_covered": 6,
+      "statements_from": "2025-10-22",
+      "statements_to":   "2026-04-22",
+      "avg_monthly_credit": 65000,
+      "avg_monthly_debit":  46800,
+      "existing_emi_debits": 8200,
+      "inflow_consistency": "Regular salary credit from Infosys BPM",
+      "bounce_count": 0
+    },
+    "itr_salary": {
+      "employer":          "Infosys BPM",
+      "assessment_year":   "2025-26",
+      "annual_income":     780000,
+      "tds_paid":          65000,
+      "professional_tax":  2400,
+      "form_16_verified":  true,
+      "form_26as_verified": true
+    }
+  },
+
+  "C": {
+    "aadhaar_ekyc": {
+      "name": "Vikram Patel",
+      "dob": "22-Nov-1988",
+      "address": "12, Shashtri Nagar, Ahmedabad - 380013",
+      "photo_url": "https://randomuser.me/api/portraits/men/45.jpg",
+      "masked_aadhaar": "XXXX-XXXX-9012",
+      "gender": "Male",
+      "verified_via": "UIDAI OTP"
+    },
+    "account_aggregator": {
+      "primary_bank": "Axis Bank",
+      "account_type": "Current Account",
+      "account_masked": "XXXX7755",
+      "months_covered": 6,
+      "statements_from": "2025-10-22",
+      "statements_to":   "2026-04-22",
+      "avg_monthly_credit": 55000,
+      "avg_monthly_debit":  42000,
+      "existing_emi_debits": 14000,
+      "inflow_consistency": "Variable — retail business receipts",
+      "bounce_count": 1
+    },
+    "itr_business": {
+      "business_name":     "Vikram Retail Enterprise",
+      "assessment_year":   "2025-26",
+      "annual_turnover":   2400000,
+      "net_profit":        660000,
+      "tax_paid":          82500,
+      "gst_registered":    true,
+      "gst_number":        "24ABCPE1234A1Z5",
+      "gst_last_filed":    "2026-03-20"
+    }
+  },
+
+  "D": {
+    "aadhaar_ekyc": {
+      "name": "Sneha Gupta",
+      "dob": "14-Feb-1992",
+      "address": "45B, New Colony, Jaipur - 302001",
+      "photo_url": "https://randomuser.me/api/portraits/women/65.jpg",
+      "masked_aadhaar": "XXXX-XXXX-3456",
+      "gender": "Female",
+      "verified_via": "UIDAI OTP"
+    },
+    "account_aggregator": {
+      "primary_bank": "ICICI Bank",
+      "account_type": "Salary Account",
+      "account_masked": "XXXX2290",
+      "months_covered": 6,
+      "statements_from": "2025-10-22",
+      "statements_to":   "2026-04-22",
+      "avg_monthly_credit": 48000,
+      "avg_monthly_debit":  41500,
+      "existing_emi_debits": 18000,
+      "inflow_consistency": "Regular salary credit (small firm)",
+      "bounce_count": 2
+    },
+    "itr_salary": {
+      "employer":          "Growth Consultants Pvt Ltd",
+      "assessment_year":   "2025-26",
+      "annual_income":     576000,
+      "tds_paid":          18000,
+      "professional_tax":  2400,
+      "form_16_verified":  true,
+      "form_26as_verified": true
+    }
+  },
+
+  "E": {
+    "aadhaar_ekyc": {
+      "name": "Rajan Kumar",
+      "dob": "30-Jul-1985",
+      "address": "78, Old Market Road, Patna - 800001",
+      "photo_url": "https://randomuser.me/api/portraits/men/52.jpg",
+      "masked_aadhaar": "XXXX-XXXX-7890",
+      "gender": "Male",
+      "verified_via": "UIDAI OTP"
+    },
+    "account_aggregator": {
+      "primary_bank": "Punjab National Bank",
+      "account_type": "Current Account",
+      "account_masked": "XXXX1188",
+      "months_covered": 6,
+      "statements_from": "2025-10-22",
+      "statements_to":   "2026-04-22",
+      "avg_monthly_credit": 35000,
+      "avg_monthly_debit":  32000,
+      "existing_emi_debits": 26000,
+      "inflow_consistency": "Irregular — self-employed",
+      "bounce_count": 3
+    },
+    "itr_business": {
+      "business_name":     "Kumar Trading Co.",
+      "assessment_year":   "2025-26",
+      "annual_turnover":   1200000,
+      "net_profit":        420000,
+      "tax_paid":          28000,
+      "gst_registered":    false,
+      "gst_number":        null,
+      "gst_last_filed":    null
+    }
+  }
+}

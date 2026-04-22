@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: kotak-backend
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: TTS_PROVIDER
+        value: elevenlabs
+      - key: ELEVENLABS_VOICE_ID
+        value: pFZP5JQG7iQjIQuC4Bku
+      - key: ELEVENLABS_MODEL
+        value: eleven_turbo_v2_5
+      - key: ELEVENLABS_API_KEY
+        sync: false          # set manually in Render dashboard
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: PYTHON_VERSION
+        value: 3.11.9
