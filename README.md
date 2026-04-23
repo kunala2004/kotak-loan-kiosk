@@ -48,35 +48,88 @@ A three-part system demonstrating where AI genuinely belongs in a loan flow
 The split is the point. A regulator can inspect the rules. An interviewer can
 see the agent. A customer sees Priya.
 
-## Screenshots
+## Screenshots — the full flow, end to end
 
-> **Add your screenshots to `docs/screenshots/` with these filenames and they'll render below.**
+Follow the numbered path below to see how a walk-in customer goes from
+*"which car caught your eye?"* all the way to a dealer-side LangGraph agent
+sanctioning the loan. Each shot maps to a stage in the architecture diagram
+further down.
 
-### Customer kiosk
+### 🧍 Customer kiosk — stages 0 → 6
+
+**1 · Idle / Welcome (Stage 0)** — Priya's Azure WebRTC avatar auto-connects on page load. First tap on *Begin* unlocks audio and she greets the customer by voice.
+
 <div align="center">
-
-<img src="docs/screenshots/idle.png" width="85%" alt="Priya greets the customer on arrival — WebRTC avatar, editorial two-column layout"/>
-
-| Car catalog | Financial discovery | PAN + Bureau |
-|---|---|---|
-| ![](docs/screenshots/car-catalog.png) | ![](docs/screenshots/financial-discovery.png) | ![](docs/screenshots/pan-entry.png) |
-
-| Pre-approval reveal | EMI optimizer | Celebration |
-|---|---|---|
-| ![](docs/screenshots/eligibility-result.png) | ![](docs/screenshots/emi-optimizer.png) | ![](docs/screenshots/celebration.png) |
-
+  <img src="docs/screenshots/01-idle-welcome.png" width="90%" alt="Stage 0 — Priya live avatar greets the customer with editorial two-column layout"/>
 </div>
 
-### Dealer portal
+**2 · Car catalog (Stage 1)** — filter 20 cars across 5 brands and body types. Rules engine handles the JSON query; Priya's corner widget reacts in the bottom-left.
+
 <div align="center">
-
-| Applications queue | Analytics funnel |
-|---|---|
-| ![](docs/screenshots/dealer-applications.png) | ![](docs/screenshots/dealer-analytics.png) |
-
-<img src="docs/screenshots/ai-review.png" width="85%" alt="LangGraph agentic review — 5-agent pipeline with OTP interrupt-resume"/>
-
+  <img src="docs/screenshots/02-car-catalog.png" width="90%" alt="Stage 1 — car catalog with brand/segment filters and price tiles"/>
 </div>
+
+**3 · Financial discovery (Stage 2)** — four slider-style questions: down payment, tenure, employment type, monthly take-home income. Live EMI preview is computed by the rules engine.
+
+<div align="center">
+  <img src="docs/screenshots/03-financial-discovery.png" width="90%" alt="Stage 2 — monthly income selection as part of financial discovery"/>
+</div>
+
+**4 · Eligibility teaser (Stage 3 · pre-PAN)** — *"Your estimated eligibility"* is shown blurred. This is the hook that makes the customer enter their PAN to unblur the exact number.
+
+<div align="center">
+  <img src="docs/screenshots/04-eligibility-teaser.png" width="90%" alt="Stage 3 teaser — blurred estimated eligibility with Check My Exact Eligibility CTA"/>
+</div>
+
+**5 · Pre-approval reveal (Stage 3 · post-bureau)** — PAN runs through mock bureau → rules engine computes exact amount, rate, tenure and EMI → LLM writes Priya's congratulations message on top of the structured result.
+
+<div align="center">
+  <img src="docs/screenshots/05-eligibility-result.png" width="90%" alt="Stage 3 reveal — ₹5.62L pre-approved, 8.75% p.a., 60 months, CIBIL 782, with LLM-written congratulations"/>
+</div>
+
+**6 · Review & submit (Stage 5)** — every field surfaced one last time before submission. Tap *Confirm & Submit Application* to push the application into the dealer queue.
+
+<div align="center">
+  <img src="docs/screenshots/06-review-submit.png" width="90%" alt="Stage 5 — review application card with car, EMI, tenure, applicant details and mobile"/>
+</div>
+
+---
+
+### 🧑‍💼 Dealer portal — handoff to the LangGraph agent
+
+**7 · Applications queue** — real-time feed from the kiosk (polls every 10s). Totals split into Pending / Sanctioned / Disbursed. Click *Review →* to open the AI Review workspace.
+
+<div align="center">
+  <img src="docs/screenshots/07-dealer-applications.png" width="90%" alt="Dealer portal — Applications queue with status counters and per-row Review action"/>
+</div>
+
+**8 · AI Review (LangGraph agentic pipeline)** — the 5-agent graph runs live with an `interrupt()` pause at each OTP node. Dealer enters `123456` at Aadhaar / AA / ITR prompts; the graph resumes, cross-verifies 6 fields, re-runs the underwriter on *verified* income, and the LLM composes the final dealer brief. The green *Sanction & Notify Customer* button fires a mock SMS and auto-advances the kiosk to the celebration screen.
+
+<div align="center">
+  <img src="docs/screenshots/08-dealer-ai-review.png" width="95%" alt="Dealer AI Review — LangGraph 5-agent pipeline log, cross-verification checks, SANCTION recommendation, customer notification timeline"/>
+</div>
+
+---
+
+### 🔗 How the screenshots map to the architecture
+
+```
+Screenshot 1 (Idle)           ──▶ Kiosk · Azure WebRTC Avatar session starts
+Screenshot 2 (Car catalog)    ──▶ Kiosk · Rules engine (JSON query over cars.json)
+Screenshot 3 (Financial Q's)  ──▶ Kiosk · Rules engine (EMI formula, live preview)
+Screenshot 4 (Teaser)         ──▶ Backend · /eligibility/estimate (declared income only)
+Screenshot 5 (Reveal)         ──▶ Backend · mock bureau → rules → LLM prose renderer
+Screenshot 6 (Review)         ──▶ Backend · POST /application  → sessions.json
+Screenshot 7 (Dealer queue)   ──▶ Dealer · GET /applications (10s poll)
+Screenshot 8 (AI Review)      ──▶ Backend · LangGraph review_graph.py with interrupt()
+                                            │
+                                            ├─▶ Aadhaar OTP  (interrupt → resume)
+                                            ├─▶ AA consent   (interrupt → resume)
+                                            ├─▶ ITR OTP      (interrupt → resume)
+                                            ├─▶ Cross-verify (6 rule-based checks)
+                                            ├─▶ Underwrite   (rules on verified income)
+                                            └─▶ Compose brief (LLM renderer)
+```
 
 ## Architecture
 
