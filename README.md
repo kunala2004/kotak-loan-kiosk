@@ -308,6 +308,300 @@ the first letter:
 
 **Demo OTP:** `123456` — works for all OTP prompts in the AI Review panel.
 
+## 🎬 Three demo cases — what to walk through with an interviewer
+
+Pick one of three PAN prefixes. The same code runs for all three, but the
+rules engine takes a different branch and the LLM retrieves a different set
+of KB chunks. **Use Case 1 for the happy path, Case 2 to show why LLM beats
+templates, Case 3 to show the system's "no" decision done right.**
+
+### 🟢 CASE 1 — Rahul Sharma · The strong approval
+
+| | |
+|---|---|
+| **PAN** | `ABCPE1234A` |
+| **Profile** | Salaried, TCS Limited |
+| **CIBIL** | 782 (Excellent) |
+| **Verified income** | ₹85,000/month |
+| **Existing EMI** | ₹0 |
+| **Picks** | Maruti Suzuki Baleno · ₹8.5L |
+| **Down payment** | ₹1.0L · Loan ₹7.5L · 60 months |
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                       CUSTOMER KIOSK                            │
+└─────────────────────────────────────────────────────────────────┘
+
+ [Stage 0]   Idle / Welcome
+            │ (Azure WebRTC avatar)
+            ▼
+ [Stage 1]   Pick car: Maruti Baleno Delta
+            │ (Rules query over cars.json)
+            ▼
+ [Stage 2]   Sliders → ₹1L down, 60mo, salaried, ₹75K–1L
+            │ (Rules: live EMI preview)
+            ▼
+ [Stage 3]   Enter PAN  →  Mock Bureau pull
+            │   ┌─ Rules engine computes:
+            │   │   • Eligible: ₹7.5L
+            │   │   • Rate: 8.50% p.a.   (KB: rate_card.md, "780+ Excellent salaried")
+            │   │   • EMI: ₹15,386
+            │   │   • FOIR: 18.1% (vs 60% cap)
+            │   └─ ✅ SANCTION pre-approved
+            │
+            │  ┌──────────────────────────────────────────┐
+            │  │ 🤖 LLM CALL #1 — Stage-3 message         │
+            │  │ Provider: OpenRouter → Grok 4.1 Fast      │
+            │  │ KB retrieved: rate_card, foir_caps        │
+            │  │ Output: "🎉 Pre-approved at our best      │
+            │  │   salaried rate of 8.50% — ₹7.5L for     │
+            │  │   your Baleno..."                         │
+            │  └──────────────────────────────────────────┘
+            ▼
+ [Stage 4-5] EMI optimizer → Phone → Review → Submit
+            ▼
+ [Stage 6]   Waiting (poll dealer)
+
+
+┌─────────────────────────────────────────────────────────────────┐
+│                       DEALER PORTAL                             │
+└─────────────────────────────────────────────────────────────────┘
+
+ Application appears in queue  →  Click "Start AI Review"
+            │
+            ▼
+ LangGraph runs: init → request_aadhaar 🛑(123456) → fetch_aadhaar
+                      → request_aa 🛑(123456) → fetch_aa
+                      → request_itr 🛑(123456) → fetch_itr → verify
+                              │
+                              ▼  6/6 checks pass, 0 flags
+            ┌──────────────────────────────────────────┐
+            │ 🤖 LLM CALL #2 — Verification narrative   │
+            │ KB retrieved: risk/soft_flag_thresholds   │
+            │ Output: "All 6 checks passed cleanly.     │
+            │   Identity, income, employment consistent"│
+            └──────────────────────────────────────────┘
+                              ▼
+                    underwrite (FOIR 18.1% ✓)
+                              ▼
+            ┌──────────────────────────────────────────┐
+            │ 🤖 LLM CALL #3 — Structured DealerBrief   │
+            │ KB retrieved:                             │
+            │   • policy/foir_caps                      │
+            │   • policy/rate_card                      │
+            │   • cross_sell/salaried_high_income       │
+            │ Output (excerpt):                         │
+            │   risk_level: LOW · confidence: 100%      │
+            │   summary: "₹85K/mo TCS, FOIR 18% << 60%" │
+            │   positives: 8.50% rate, zero EMI...      │
+            │   cross_sell_hint: "Pre-approved PL up    │
+            │     to 3× monthly income at preferential" │
+            └──────────────────────────────────────────┘
+                              ▼
+              Sanction → SMS → Customer celebrates
+```
+
+> **Interview line:** *"Clean approval path. Three distinct LLM calls,
+> each grounded in 2–3 KB chunks. Notice the cross-sell hint — that's the
+> LLM cross-referencing his salaried-high-income profile against
+> `cross_sell/salaried_high_income.md` and quoting the 3× pre-approved PL
+> line verbatim. The model didn't make that up; it retrieved it."*
+
+### 🟡 CASE 2 — Vikram Patel · Where the LLM beats templates
+
+| | |
+|---|---|
+| **PAN** | `CVKPE5678C` |
+| **Profile** | Self-employed retail business |
+| **CIBIL** | 668 (Below average) |
+| **Verified income** | ₹55,000/month |
+| **Existing EMI** | ₹14,000 (₹9.5K + ₹4.5K) |
+| **Picks** | Maruti Brezza · ₹14L |
+| **Asked** | ₹8.5L loan, 60 months |
+
+**Calculations triggered**
+- Self-employed sub-700 → rate ~11.75% (KB: `rate_card.md`)
+- Asked-EMI: ~₹18,800
+- Asked-FOIR: (18,800 + 14,000) / 55,000 = **59.6%**
+- Policy cap for ₹30–75K income, CIBIL 650–699: **45%**
+- ❌ Exceeds cap → **partial approval**, not full
+
+```
+[Stage 3] PAN → Bureau (CIBIL 668)
+              │
+              ▼ Rules engine:
+              •  Asked: ₹8.5L → FOIR 59.6% > 45% cap
+              •  Backsolve: max affordable EMI = ₹10,750
+              •  Reduced loan: ~₹4.85L at 11.75%/60mo
+              │
+              ▼
+ ┌──────────────────────────────────────────────────────┐
+ │ 🤖 LLM CALL — Stage-3 message                         │
+ │ KB retrieved:                                         │
+ │   • policy/foir_caps     (45% cap for this band)      │
+ │   • policy/rate_card     (11.75% self-employed)       │
+ │   • faq/low_cibil        (improvement guidance)       │
+ │ Output: "Vikram, we can pre-approve ₹4.85L at         │
+ │  11.75% — your existing ₹14K EMI puts ₹8.5L outside   │
+ │  policy. Tip: increase down payment by ₹40K to drop   │
+ │  FOIR to 38%; that unlocks the 11% rate band."        │
+ └──────────────────────────────────────────────────────┘
+
+[Dealer side] — Same LangGraph review runs to completion
+
+ verify → 6/6 checks pass (no fraud flags)
+       → underwrite re-confirms FOIR breach with verified income
+       → compose_brief
+
+ ┌──────────────────────────────────────────────────────┐
+ │ 🤖 STRUCTURED DEALER BRIEF                            │
+ │ KB retrieved:                                         │
+ │   • policy/foir_caps                                  │
+ │   • policy/rate_card                                  │
+ │   • cross_sell/self_employed_business                 │
+ │   • risk/soft_flag_thresholds                         │
+ │                                                       │
+ │ risk_level: MEDIUM · confidence: 75%                  │
+ │ summary: "Vikram operates a retail business with      │
+ │   ₹55K verified income. CIBIL 668 places him in       │
+ │   sub-prime band with 45% FOIR cap; asked-loan        │
+ │   pushes FOIR to 59.6%. Recommend reduced sanction    │
+ │   at ₹4.85L."                                         │
+ │ key_positives:                                        │
+ │   • Business vintage 7 yrs · stable cash flow         │
+ │   • Verified income matches AA + ITR within 8%        │
+ │ key_concerns:                                         │
+ │   • FOIR breach at requested loan size                │
+ │   • 1 missed payment in 12 months · 4 inquiries       │
+ │ talking_points:                                       │
+ │   • Suggest higher down payment to keep target loan   │
+ │   • OR offer ₹4.85L at 11.75% with full sanction      │
+ │ cross_sell_hint: "Working capital OD against current  │
+ │   account — same docs, no fresh underwriting."        │
+ └──────────────────────────────────────────────────────┘
+```
+
+**Side-by-side: Template vs LLM (the magic moment to show)**
+
+```
+ ┌───────────────────────────────────────────────────┐
+ │ 📄 TEMPLATE                                       │
+ │ "Vikram is a self-employed professional, with     │
+ │  verified monthly income of ₹55,000. They have    │
+ │  ₹14,000 existing EMI and their average credit    │
+ │  profile leaves FOIR at 59.6% — well within       │
+ │  the 45% policy cap. Recommendation: SANCTION."   │
+ │                                                   │
+ │  ❌ Says "well within" when 59.6 > 45             │
+ │  ❌ Recommends SANCTION when rules say partial    │
+ │  ❌ No actionable suggestion                      │
+ │  ❌ No cross-sell                                 │
+ │  ❌ No risk tier                                  │
+ └───────────────────────────────────────────────────┘
+                       vs
+ ┌───────────────────────────────────────────────────┐
+ │ 🤖 LLM + RAG                                      │
+ │  ✅ Catches the FOIR breach                       │
+ │  ✅ Suggests +₹40K down payment OR reduced loan   │
+ │  ✅ Cites 45% cap from foir_caps.md               │
+ │  ✅ Cites 11.75% rate from rate_card.md           │
+ │  ✅ Cross-sell from self_employed_business.md     │
+ │  ✅ MEDIUM risk badge, 75% confidence             │
+ └───────────────────────────────────────────────────┘
+```
+
+> **Interview line — the killer demo moment:** *"Same data, same rules
+> engine. Without the LLM, the dealer reads 'well within the 45% cap' for a
+> 59% FOIR — that's misleading and an auditor would flag it. With the LLM
+> grounded in our policy KB, the brief catches the breach AND suggests an
+> actionable workaround the dealer can offer the customer. The LLM is
+> paying its rent here, not just decorating the output."*
+
+### 🔴 CASE 3 — Rajan Kumar · The "no" decision done right
+
+| | |
+|---|---|
+| **PAN** | `ERAKE9999E` |
+| **Profile** | Self-employed, no business proof |
+| **CIBIL** | 584 (High risk) |
+| **Verified income** | ₹35,000/month |
+| **Existing EMI** | ₹26,000 (₹12K + ₹8K + ₹6K) |
+| **Missed payments** | 5 in last 12 months |
+
+**Calculations**
+- CIBIL < 650 → auto-decline threshold (KB: `escalation_rules.md`)
+- Existing FOIR already 74% (₹26K / ₹35K) → no headroom for new EMI
+- 5 missed payments → multiple soft flags trip
+- 8 inquiries in 6 months → distress signal
+
+```
+[Stage 3] PAN → Bureau (CIBIL 584)
+              │
+              ▼ Rules engine:
+              •  CIBIL below 650 — auto-decline threshold
+              •  FOIR already 74% before new EMI
+              │
+              ▼
+ ┌──────────────────────────────────────────────────────┐
+ │ 🤖 LLM CALL — Empathetic decline message              │
+ │ KB retrieved:                                         │
+ │   • faq/low_cibil           (improvement steps)       │
+ │   • faq/rejection_reasons   (transparency)            │
+ │   • cross_sell/low_band_recovery (rebuild path)       │
+ │ Output: "Rajan, we couldn't pre-approve at this       │
+ │  time — your existing EMIs leave little room for      │
+ │  another. Three things that would help: clear the     │
+ │  smallest credit balance, avoid new applications      │
+ │  for 90 days, and revisit in 4 months. We'll save     │
+ │  your details and reach out."                         │
+ └──────────────────────────────────────────────────────┘
+              │
+              ▼
+ [Stage]    Phone capture only (NO loan submission)
+              │
+              ▼
+ ┌──────────────────────────────────────────────────────┐
+ │ 🤖 Drop-off recovery agent (Phase 3)                  │
+ │ Scheduled via APScheduler: SMS in 30 days             │
+ │ "Hi Rajan, 30 days since your visit. Want a quick     │
+ │  check on whether your profile has improved? Reply    │
+ │  YES."                                                │
+ └──────────────────────────────────────────────────────┘
+
+[Dealer side] — never reaches the dealer queue (auto-declined)
+              Lead enters the soft-decline funnel for
+              cross-sell of secured-credit-card products.
+```
+
+> **Interview line:** *"The system says no — but the system doesn't slam
+> the door. The same RAG stack retrieves from `faq/low_cibil.md` and
+> `cross_sell/low_band_recovery.md` to generate an empathetic, actionable
+> explanation. Phone is captured for follow-up. Rajan becomes a lead for
+> our secured-credit-card product, not a lost customer. A regulator can
+> audit every claim back to a chunk file; a customer leaves with dignity."*
+
+### 📊 The comparison table — flash this at the end
+
+| | Rahul (A) | Vikram (C) | Rajan (E) |
+|---|---|---|---|
+| **CIBIL** | 782 ✅ | 668 ⚠️ | 584 ❌ |
+| **Outcome** | Full sanction | Reduced sanction | Soft decline |
+| **Decision by** | Rules engine | Rules engine | Rules engine |
+| **LLM role** | Renders + cross-sells | Renders + suggests action | Renders empathy |
+| **KB chunks hit** | rate_card, foir_caps, salaried_high_income | foir_caps, rate_card, self_employed_business, soft_flag_thresholds | low_cibil, rejection_reasons, low_band_recovery |
+| **Risk level** | LOW | MEDIUM | HIGH (auto-decline) |
+| **Goes to dealer** | Yes | Yes | No (lead funnel) |
+
+### 🎙️ Closing line for the interviewer
+
+> *"Same architecture, three completely different outcomes. The rules
+> engine makes every money decision — auditable, RBI-defensible. The LLM,
+> grounded in 30 KB chunks, does what no template can: it tiers tone,
+> catches edge cases, suggests workarounds, and explains 'no' without
+> alienating the customer. That's the entire point of putting AI in a
+> regulated industry — it's a force-multiplier for the humans, never a
+> replacement for the rules."*
+
 ## Run locally
 
 Three terminals.
