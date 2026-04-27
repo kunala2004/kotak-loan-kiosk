@@ -45,8 +45,8 @@ A three-part system demonstrating where AI genuinely belongs in a loan flow
 - **Multi-step coordination (document verification with OTP pauses)** → LangGraph agentic workflow
 - **Customer face (avatar)** → Azure Real-Time TTS Avatar streaming over WebRTC
 
-The split is the point. A regulator can inspect the rules. An interviewer can
-see the agent. A customer sees Priya.
+The split is the point. A regulator can inspect the rules. An engineer can
+read the agent graph. A customer sees Priya.
 
 ## Screenshots — the full flow, end to end
 
@@ -308,14 +308,14 @@ the first letter:
 
 **Demo OTP:** `123456` — works for all OTP prompts in the AI Review panel.
 
-## 🎬 Three demo cases — what to walk through with an interviewer
+## Three example flows — same architecture, three branches
 
-Pick one of three PAN prefixes. The same code runs for all three, but the
-rules engine takes a different branch and the LLM retrieves a different set
-of KB chunks. **Use Case 1 for the happy path, Case 2 to show why LLM beats
-templates, Case 3 to show the system's "no" decision done right.**
+Pick one of three PAN prefixes. The same code runs for all three; the rules
+engine takes a different branch and the LLM retrieves a different set of KB
+chunks. The three cases below cover full approval, partial approval (FOIR
+breach), and soft decline.
 
-### 🟢 CASE 1 — Rahul Sharma · The strong approval
+### Case 1 — Rahul Sharma · Full approval
 
 | | |
 |---|---|
@@ -401,13 +401,7 @@ templates, Case 3 to show the system's "no" decision done right.**
               Sanction → SMS → Customer celebrates
 ```
 
-> **Interview line:** *"Clean approval path. Three distinct LLM calls,
-> each grounded in 2–3 KB chunks. Notice the cross-sell hint — that's the
-> LLM cross-referencing his salaried-high-income profile against
-> `cross_sell/salaried_high_income.md` and quoting the 3× pre-approved PL
-> line verbatim. The model didn't make that up; it retrieved it."*
-
-### 🟡 CASE 2 — Vikram Patel · Where the LLM beats templates
+### Case 2 — Vikram Patel · Partial approval after FOIR breach
 
 | | |
 |---|---|
@@ -481,7 +475,7 @@ templates, Case 3 to show the system's "no" decision done right.**
  └──────────────────────────────────────────────────────┘
 ```
 
-**Side-by-side: Template vs LLM (the magic moment to show)**
+**Side-by-side: Template vs LLM**
 
 ```
  ┌───────────────────────────────────────────────────┐
@@ -510,14 +504,7 @@ templates, Case 3 to show the system's "no" decision done right.**
  └───────────────────────────────────────────────────┘
 ```
 
-> **Interview line — the killer demo moment:** *"Same data, same rules
-> engine. Without the LLM, the dealer reads 'well within the 45% cap' for a
-> 59% FOIR — that's misleading and an auditor would flag it. With the LLM
-> grounded in our policy KB, the brief catches the breach AND suggests an
-> actionable workaround the dealer can offer the customer. The LLM is
-> paying its rent here, not just decorating the output."*
-
-### 🔴 CASE 3 — Rajan Kumar · The "no" decision done right
+### Case 3 — Rajan Kumar · Soft decline + lead capture
 
 | | |
 |---|---|
@@ -573,14 +560,7 @@ templates, Case 3 to show the system's "no" decision done right.**
               cross-sell of secured-credit-card products.
 ```
 
-> **Interview line:** *"The system says no — but the system doesn't slam
-> the door. The same RAG stack retrieves from `faq/low_cibil.md` and
-> `cross_sell/low_band_recovery.md` to generate an empathetic, actionable
-> explanation. Phone is captured for follow-up. Rajan becomes a lead for
-> our secured-credit-card product, not a lost customer. A regulator can
-> audit every claim back to a chunk file; a customer leaves with dignity."*
-
-### 📊 The comparison table — flash this at the end
+### Comparison summary
 
 | | Rahul (A) | Vikram (C) | Rajan (E) |
 |---|---|---|---|
@@ -591,16 +571,6 @@ templates, Case 3 to show the system's "no" decision done right.**
 | **KB chunks hit** | rate_card, foir_caps, salaried_high_income | foir_caps, rate_card, self_employed_business, soft_flag_thresholds | low_cibil, rejection_reasons, low_band_recovery |
 | **Risk level** | LOW | MEDIUM | HIGH (auto-decline) |
 | **Goes to dealer** | Yes | Yes | No (lead funnel) |
-
-### 🎙️ Closing line for the interviewer
-
-> *"Same architecture, three completely different outcomes. The rules
-> engine makes every money decision — auditable, RBI-defensible. The LLM,
-> grounded in 30 KB chunks, does what no template can: it tiers tone,
-> catches edge cases, suggests workarounds, and explains 'no' without
-> alienating the customer. That's the entire point of putting AI in a
-> regulated industry — it's a force-multiplier for the humans, never a
-> replacement for the rules."*
 
 ## Run locally
 
@@ -716,6 +686,6 @@ kotak-project/
 
 ## Credits
 
-Built as an interview-stage agentic AI demo for Kotak Mahindra Bank. Uses
-public India Stack concepts (UIDAI, Account Aggregator, IT portal) — all
-mocked. No real customer data anywhere in the repo.
+Reference implementation of an agentic AI loan-kiosk system. Uses public
+India Stack concepts (UIDAI, Account Aggregator, IT portal) — all mocked.
+No real customer data anywhere in the repo.
