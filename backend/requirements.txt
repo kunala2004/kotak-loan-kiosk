@@ -16,7 +16,8 @@ langgraph==1.1.9
 chromadb==0.5.20
 
 # LangSmith tracing — optional, activated when LANGSMITH_API_KEY is set
-langsmith==0.1.147
+# Range chosen to match what langchain-core 1.3.x (transitive from langgraph 1.1.9) requires.
+langsmith>=0.3.45,<1.0.0
 
 # Follow-up agent
 apscheduler==3.10.4
