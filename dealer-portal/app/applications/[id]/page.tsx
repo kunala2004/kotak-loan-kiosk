@@ -445,7 +445,7 @@ export default function ApplicationDetail() {
           <div className="bg-white rounded-xl border border-slate-200 p-6">
             <h2 className="font-bold text-slate-900 mb-4">Timeline</h2>
             <div className="space-y-4">
-              {app.timeline.map((t, i) => (
+              {(app.timeline || []).map((t, i, arr) => (
                 <div key={i} className="flex gap-3 text-sm">
                   <div className="flex flex-col items-center">
                     <div className={`w-2 h-2 rounded-full mt-1.5 ${
@@ -454,7 +454,7 @@ export default function ApplicationDetail() {
                       t.stage.includes("doc")      ? "bg-blue-500"   :
                                                      "bg-slate-300"
                     }`} />
-                    {i < app.timeline.length - 1 && <div className="w-px flex-1 bg-slate-100 mt-1" />}
+                    {i < arr.length - 1 && <div className="w-px flex-1 bg-slate-100 mt-1" />}
                   </div>
                   <div className="pb-4">
                     <p className="text-slate-700 font-medium capitalize">
@@ -464,6 +464,9 @@ export default function ApplicationDetail() {
                   </div>
                 </div>
               ))}
+              {(!app.timeline || app.timeline.length === 0) && (
+                <p className="text-slate-400 text-xs italic">No timeline events yet.</p>
+              )}
             </div>
           </div>
 

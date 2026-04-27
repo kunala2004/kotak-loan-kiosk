@@ -11,6 +11,13 @@ openai==1.51.0
 # langchain-core comes transitively from langgraph; don't pin here, avoids resolver conflicts.
 langgraph==1.1.9
 
+# Knowledge base (RAG retrieval). ChromaDB ships its own ONNX embedder by default;
+# if it can't load on a slim deploy, the KB transparently falls back to BM25.
+chromadb==0.5.20
+
+# LangSmith tracing — optional, activated when LANGSMITH_API_KEY is set
+langsmith==0.1.147
+
 # Follow-up agent
 apscheduler==3.10.4
 twilio==9.3.2

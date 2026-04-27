@@ -119,11 +119,15 @@ def estimate_eligibility_tool(
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "demo")
 tools = [search_cars_tool, calculate_emi_tool, estimate_eligibility_tool]
 
-llm = ChatGroq(
-    api_key=GROQ_API_KEY,
-    model="llama-3.3-70b-versatile",
-    temperature=0.7
-).bind_tools(tools) if GROQ_API_KEY != "demo" else None
+llm = (
+    ChatGroq(
+        api_key=GROQ_API_KEY,
+        model="llama-3.3-70b-versatile",
+        temperature=0.7,
+    ).bind_tools(tools)
+    if (_LANGCHAIN_GROQ_AVAILABLE and GROQ_API_KEY and GROQ_API_KEY != "demo")
+    else None
+)
 
 
 SYSTEM_PROMPT = """You are Priya, a warm and knowledgeable car loan assistant for Kotak Bank at a showroom kiosk.

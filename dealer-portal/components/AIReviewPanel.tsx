@@ -35,6 +35,23 @@ type Recommendation = {
   within_policy: boolean
 }
 
+type StructuredBrief = {
+  summary: string
+  risk_level: "LOW" | "MEDIUM" | "HIGH"
+  confidence_pct: number
+  key_positives: string[]
+  key_concerns: string[]
+  talking_points: string[]
+  cross_sell_hint: string
+}
+
+type BriefMeta = {
+  is_ai: boolean
+  provider: string | null
+  model: string | null
+  rag: string | null
+}
+
 type ReviewState = {
   application_id: string
   status: "not_started" | "running" | "waiting" | "completed" | "flagged"
@@ -45,7 +62,13 @@ type ReviewState = {
   docs: Record<string, Record<string, any>>
   verification: Verification | null
   recommendation: Recommendation | null
-  brief: string | null
+  brief: string | StructuredBrief | null
+  brief_template: string | null
+  brief_meta: BriefMeta | null
+}
+
+function isStructuredBrief(b: ReviewState["brief"]): b is StructuredBrief {
+  return !!b && typeof b === "object" && "summary" in b && "risk_level" in b
 }
 
 const STEP_ICONS: Record<string, string> = {
@@ -81,6 +104,7 @@ export default function AIReviewPanel({ applicationId, onSanctioned }: Props) {
   const [otp, setOtp]             = useState("")
   const [sanctioning, setSanctioning] = useState(false)
   const [sanctionMsg, setSanctionMsg] = useState("")
+  const [showTemplate, setShowTemplate] = useState(false)
   const logEndRef = useRef<HTMLDivElement>(null)
 
   const fetchState = useCallback(async () => {
@@ -212,7 +236,7 @@ export default function AIReviewPanel({ applicationId, onSanctioned }: Props) {
           <>
             {/* Event log */}
             <div className="bg-slate-900 rounded-lg p-4 mb-4 max-h-64 overflow-y-auto font-mono">
-              {state.events.map((e, i) => (
+              {(state.events || []).map((e, i) => (
                 <div key={i} className="flex items-start gap-2 text-xs mb-1.5">
                   <span className="text-slate-500 min-w-[60px]">{fmtTime(e.at)}</span>
                   <span className="w-5 text-center">{STEP_ICONS[e.step] || "•"}</span>
@@ -282,7 +306,7 @@ export default function AIReviewPanel({ applicationId, onSanctioned }: Props) {
                 <div className="border border-slate-200 rounded-lg overflow-hidden">
                   <table className="w-full text-xs">
                     <tbody className="divide-y divide-slate-100">
-                      {state.verification.checks.map((c, i) => (
+                      {(state.verification.checks || []).map((c, i) => (
                         <tr key={i} className={c.match ? "" : "bg-red-50"}>
                           <td className="px-3 py-2 w-6 text-center">
                             {c.match ? <span className="text-green-600 font-bold">✓</span>
@@ -300,7 +324,7 @@ export default function AIReviewPanel({ applicationId, onSanctioned }: Props) {
                   <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-700">
                     <p className="font-semibold mb-1">Flags:</p>
                     <ul className="list-disc list-inside">
-                      {state.verification.flags.map((f, i) => <li key={i}>{f}</li>)}
+                      {(state.verification.flags || []).map((f, i) => <li key={i}>{f}</li>)}
                     </ul>
                   </div>
                 )}
@@ -338,9 +362,15 @@ export default function AIReviewPanel({ applicationId, onSanctioned }: Props) {
                     <p className="text-slate-800 font-semibold">{state.recommendation.foir_max_pct}%</p>
                   </div>
                 </div>
-                <p className="text-slate-700 text-sm leading-relaxed border-t border-slate-200 pt-3">
-                  {state.brief}
-                </p>
+                <div className="border-t border-slate-200 pt-3">
+                  <BriefSection
+                    brief={state.brief}
+                    briefTemplate={state.brief_template}
+                    meta={state.brief_meta}
+                    showTemplate={showTemplate}
+                    onToggle={() => setShowTemplate((v) => !v)}
+                  />
+                </div>
               </div>
             )}
 
@@ -370,6 +400,153 @@ export default function AIReviewPanel({ applicationId, onSanctioned }: Props) {
           </>
         )}
       </div>
+    </div>
+  )
+}
+
+interface BriefSectionProps {
+  brief: ReviewState["brief"]
+  briefTemplate: string | null
+  meta: BriefMeta | null
+  showTemplate: boolean
+  onToggle: () => void
+}
+
+function BriefSection({ brief, briefTemplate, meta, showTemplate, onToggle }: BriefSectionProps) {
+  const aiAvailable = !!meta?.is_ai && isStructuredBrief(brief)
+  const templateAvailable = !!briefTemplate
+
+  // If LLM never produced structured output (no key, parse failure, etc.) and `brief`
+  // already holds the template string, hide the toggle entirely.
+  const canToggle = aiAvailable && templateAvailable
+
+  const showingTemplate = canToggle ? showTemplate : !aiAvailable
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        {showingTemplate ? (
+          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 border border-slate-200 px-2 py-1 rounded">
+            📄 Template version <span className="text-slate-400 font-normal normal-case tracking-normal">· deterministic, no AI</span>
+          </span>
+        ) : aiAvailable ? (
+          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-1 rounded">
+            🤖 AI-generated
+            {meta?.model && (
+              <span className="text-indigo-500 font-normal normal-case tracking-normal">
+                · {meta.model}{meta.rag ? ` · RAG ${meta.rag}` : ""}
+              </span>
+            )}
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 border border-slate-200 px-2 py-1 rounded">
+            📄 Template version <span className="text-slate-400 font-normal normal-case tracking-normal">· LLM unavailable, using fallback</span>
+          </span>
+        )}
+
+        {canToggle && (
+          <button
+            onClick={onToggle}
+            className="text-[11px] font-semibold text-slate-600 hover:text-[#E31837] underline decoration-dotted underline-offset-2 transition-colors"
+          >
+            {showingTemplate ? "Show AI version →" : "← Show template version"}
+          </button>
+        )}
+      </div>
+
+      {showingTemplate ? (
+        <div className="bg-slate-50 border border-slate-200 rounded-md p-3">
+          <p className="text-slate-700 text-sm leading-relaxed">{briefTemplate || (typeof brief === "string" ? brief : "")}</p>
+          {canToggle && (
+            <p className="mt-2 text-[10px] text-slate-400 italic">
+              This is what the system would output without the LLM + knowledge base — flat, generic, no risk-tiering, no actionable talking points, no cross-sell.
+            </p>
+          )}
+        </div>
+      ) : isStructuredBrief(brief) ? (
+        <StructuredBriefCard brief={brief} />
+      ) : (
+        <p className="text-slate-700 text-sm leading-relaxed">{typeof brief === "string" ? brief : ""}</p>
+      )}
+    </div>
+  )
+}
+
+const RISK_STYLES: Record<StructuredBrief["risk_level"], string> = {
+  LOW:    "bg-green-100 text-green-700 border-green-200",
+  MEDIUM: "bg-amber-100 text-amber-700 border-amber-200",
+  HIGH:   "bg-red-100 text-red-700 border-red-200",
+}
+
+function StructuredBriefCard({ brief }: { brief: StructuredBrief }) {
+  const positives = brief.key_positives || []
+  const concerns  = brief.key_concerns  || []
+  const talking   = brief.talking_points || []
+  const riskClass = RISK_STYLES[brief.risk_level] || "bg-slate-100 text-slate-600 border-slate-200"
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-slate-800 text-sm leading-relaxed flex-1">{brief.summary}</p>
+        <div className="flex flex-col items-end gap-1 min-w-[110px]">
+          <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded border ${riskClass}`}>
+            {brief.risk_level || "—"} risk
+          </span>
+          <span className="text-[10px] text-slate-500">
+            LLM confidence {brief.confidence_pct ?? 0}%
+          </span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {positives.length > 0 && (
+          <div>
+            <p className="text-[10px] font-bold text-green-700 uppercase tracking-wide mb-1">✓ Positives</p>
+            <ul className="space-y-1">
+              {positives.map((p, i) => (
+                <li key={i} className="text-xs text-slate-700 flex gap-1.5">
+                  <span className="text-green-600">•</span>
+                  <span>{p}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {concerns.length > 0 && (
+          <div>
+            <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wide mb-1">⚠ Concerns</p>
+            <ul className="space-y-1">
+              {concerns.map((c, i) => (
+                <li key={i} className="text-xs text-slate-700 flex gap-1.5">
+                  <span className="text-amber-600">•</span>
+                  <span>{c}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      {talking.length > 0 && (
+        <div className="border-t border-slate-200 pt-3">
+          <p className="text-[10px] font-bold text-slate-600 uppercase tracking-wide mb-1.5">🗣 Talking points for the customer</p>
+          <ul className="space-y-1">
+            {talking.map((t, i) => (
+              <li key={i} className="text-xs text-slate-700 flex gap-1.5">
+                <span className="text-slate-400">›</span>
+                <span>{t}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {brief.cross_sell_hint && (
+        <div className="bg-indigo-50 border border-indigo-200 rounded-md px-3 py-2">
+          <p className="text-[10px] font-bold text-indigo-700 uppercase tracking-wide mb-0.5">Cross-sell hint</p>
+          <p className="text-xs text-indigo-900">{brief.cross_sell_hint}</p>
+        </div>
+      )}
     </div>
   )
 }

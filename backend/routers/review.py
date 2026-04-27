@@ -21,12 +21,26 @@ def _thread(app_id: str) -> dict:
 def _read_state(app_id: str) -> dict:
     snap = REVIEW_GRAPH.get_state(_thread(app_id))
     values = snap.values or {}
-    interrupts = getattr(snap, "interrupts", None) or []
+
+    # LangGraph 1.x: interrupts live on each pending task in `snap.tasks`,
+    # not on `snap.interrupts`. Walk all tasks and collect them.
+    interrupts: list = []
+    for task in (getattr(snap, "tasks", None) or []):
+        for itr in (getattr(task, "interrupts", None) or []):
+            interrupts.append(itr)
+    # Some older versions still expose top-level .interrupts — fall back to it.
+    if not interrupts:
+        for itr in (getattr(snap, "interrupts", None) or []):
+            interrupts.append(itr)
+
     waiting_payload = None
     if interrupts:
-        # LangGraph >= 1.x: each interrupt has a .value attribute
         first = interrupts[0]
-        waiting_payload = getattr(first, "value", None) or (first if isinstance(first, dict) else None)
+        # Interrupt object has .value; handle dict / raw payload variants too
+        if hasattr(first, "value"):
+            waiting_payload = first.value
+        elif isinstance(first, dict):
+            waiting_payload = first
 
     status = values.get("status", "running")
     if waiting_payload:
@@ -43,6 +57,8 @@ def _read_state(app_id: str) -> dict:
         "verification":   values.get("verification"),
         "recommendation": values.get("recommendation"),
         "brief":          values.get("brief"),
+        "brief_template": values.get("brief_template"),
+        "brief_meta":     values.get("brief_meta"),
     }
 
 

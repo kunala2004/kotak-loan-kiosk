@@ -36,6 +36,8 @@ pip-delete-this-directory.txt
 # ── Runtime caches (regenerated) ───────────────────────
 backend/cache/
 backend/data/sessions.json
+backend/data/_chroma/
+backend/data/_chroma_db/
 
 # ── IDE / OS ───────────────────────────────────────────
 .vscode/

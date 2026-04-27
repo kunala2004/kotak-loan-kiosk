@@ -28,7 +28,7 @@ from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.types import interrupt, Command
 
-from agents.llm_reasoner import narrate_step, narrate_verification, write_brief
+from agents.llm_reasoner import narrate_step, narrate_verification, write_brief, template_brief, llm_status
 from engines.emi_calculator import calculate_emi
 from engines.eligibility_engine import rules as LOAN_RULES
 
@@ -55,7 +55,9 @@ class ReviewState(TypedDict, total=False):
     docs:           dict
     verification:   dict
     recommendation: dict
-    brief:          str
+    brief:          Any         # dict (structured DealerBrief) or str (template fallback)
+    brief_template: str         # always-deterministic template version, for the AI vs template toggle
+    brief_meta:     dict        # {"provider": "openrouter", "model": "x-ai/grok-4.1-fast", "is_ai": bool}
     events:         list        # [{ step, at, note, status }]
     status:         Literal["running", "waiting", "completed", "flagged"]
     waiting_for:    Optional[str]  # "aadhaar_otp" | "aa_consent" | "itr_otp"
@@ -378,11 +380,26 @@ def n_compose_brief(state: ReviewState) -> dict:
         "recommendation":  rec.get("decision", "—"),
         "car_label":       f"{app.get('car', {}).get('brand','')} {app.get('car', {}).get('model','')}".strip(),
     }
-    brief = write_brief(context)
+    brief          = write_brief(context)
+    brief_tmpl     = template_brief(context)
+    is_ai_brief    = isinstance(brief, dict)  # dict = LLM structured output; str = template fallback
+    status_meta    = llm_status()
+    brief_meta = {
+        "is_ai":     is_ai_brief,
+        "provider":  status_meta.get("provider", "none") if is_ai_brief else "template",
+        "model":     status_meta.get("model")  if is_ai_brief else None,
+        "rag":       status_meta.get("rag", {}).get("backend") if is_ai_brief else None,
+    }
     events = _log(state, "brief", narrate_step("brief", {}))
     events = _log({"events": events}, "done",
                   narrate_step("done", {}), "success")
-    return {"brief": brief, "status": "completed", "events": events}
+    return {
+        "brief":          brief,
+        "brief_template": brief_tmpl,
+        "brief_meta":     brief_meta,
+        "status":         "completed",
+        "events":         events,
+    }
 
 
 # ── Build graph ──────────────────────────────────────────────────────────
@@ -400,7 +417,7 @@ def build_graph():
     g.add_node("verify",           n_verify)
     g.add_node("underwrite",       n_underwrite)
     g.add_node("flagged_end",      n_flagged_end)
-    g.add_node("brief",            n_compose_brief)
+    g.add_node("compose_brief",    n_compose_brief)
 
     g.add_edge(START,              "init")
     g.add_edge("init",             "request_aadhaar")
@@ -414,8 +431,8 @@ def build_graph():
         "underwrite":  "underwrite",
         "flagged_end": "flagged_end",
     })
-    g.add_edge("underwrite",       "brief")
-    g.add_edge("brief",            END)
+    g.add_edge("underwrite",       "compose_brief")
+    g.add_edge("compose_brief",    END)
     g.add_edge("flagged_end",      END)
 
     checkpointer = InMemorySaver()
