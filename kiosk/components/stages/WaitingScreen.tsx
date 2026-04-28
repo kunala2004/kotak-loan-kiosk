@@ -15,7 +15,7 @@ const STEPS = [
 
 const TIPS = [
   "We'll update you right here — and on your phone.",
-  "Kotak processes over 1 lakh car loans every month across India.",
+  "Indian banks process over 1 lakh car loans every month across the country.",
   "Your data is encrypted and never shared without your consent.",
   "Once approved, paperwork at the desk takes just 6-7 minutes.",
 ]

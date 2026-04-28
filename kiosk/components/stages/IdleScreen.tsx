@@ -11,7 +11,7 @@ const PRIYA_PLACEHOLDER = "/priya-placeholder.png"
 const PRIYA_FALLBACK    = "https://randomuser.me/api/portraits/women/44.jpg"
 
 const GREETING =
-  "Hello. I'm Priya, your Kotak loan assistant. Let's find your dream car together."
+  "Hello. I'm Priya, your car loan assistant. Let's find your dream car together."
 
 export default function IdleScreen() {
   const { setStage } = useKioskStore()
@@ -189,7 +189,7 @@ export default function IdleScreen() {
           >
             <div className="w-1 h-6 bg-[#E31837] rounded-full" />
             <span className="text-white/50 text-[11px] uppercase tracking-[0.35em] font-semibold">
-              Kotak · Showroom Kiosk
+              Car Loan · Showroom Kiosk
             </span>
           </motion.div>
 
@@ -292,7 +292,7 @@ export default function IdleScreen() {
 
       {/* Minimal footer */}
       <div className="absolute bottom-4 right-8 text-white/15 text-[10px] tracking-widest uppercase">
-        Kotak Mahindra Bank · RBI Licensed
+        Car Loan Kiosk · Demo
       </div>
     </motion.div>
   )

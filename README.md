@@ -1,10 +1,10 @@
 <div align="center">
 
-# Kotak · Gamified Loan Kiosk
+# Car Loan Kiosk · Gamified Showroom Journey
 
 **Walk into a showroom → drive out with a car in 25 minutes.**
 
-An end-to-end agentic AI system for Kotak Bank's car-loan journey.
+An end-to-end agentic AI system for a showroom car-loan journey.
 A customer talks to a real-time Azure AI avatar named Priya, picks a car,
 answers four slider-based questions, gets a pre-approval, and walks to the
 dealer desk — where a LangGraph-orchestrated agent handles digital document
@@ -18,7 +18,7 @@ verification with OTP human-in-loop and recommends a one-click sanction.
 |---|---|---|
 | **Customer** | **[→ ai-loan-kiosk.vercel.app](https://ai-loan-kiosk.vercel.app/)** | Priya live, full 7-stage journey with WebRTC avatar |
 | **Dealer** | **[→ ai-loan-dealer.vercel.app](https://ai-loan-dealer.vercel.app/)** | Applications queue + Analytics funnel + LangGraph review |
-| **API docs** | **[→ kotak-loan-kiosk.onrender.com/docs](https://kotak-loan-kiosk.onrender.com/docs)** | FastAPI auto-generated Swagger |
+| **API docs** | **[→ car-loan-kiosk.onrender.com/docs](https://car-loan-kiosk.onrender.com/docs)** | FastAPI auto-generated Swagger |
 
 > First request to the backend may take ~30s (Render free tier cold start).
 > Demo PAN starts with **A / B / C / D / E** → different personas & outcomes.
@@ -608,7 +608,7 @@ npm run dev -- -p 3001           # http://localhost:3001
 1. [dashboard.render.com](https://dashboard.render.com) → **New Web Service** → connect this repo
 2. Root Directory: `backend` · Build: `pip install -r requirements.txt` · Start: `uvicorn main:app --host 0.0.0.0 --port $PORT`
 3. Env vars: `PYTHON_VERSION=3.11.9`, `TTS_PROVIDER=azure`, `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION=centralindia`, `AZURE_AVATAR_KEY`, `AZURE_AVATAR_REGION=southeastasia`
-4. Deploy → copy the URL (e.g. `kotak-loan-kiosk.onrender.com`)
+4. Deploy → copy the URL (e.g. `car-loan-kiosk.onrender.com`)
 
 ### Frontends → Vercel (two projects)
 1. [vercel.com/new](https://vercel.com/new) → import this repo → **Root Directory: `kiosk`**
@@ -621,7 +621,7 @@ Every `git push origin main` auto-redeploys all three.
 ## Project structure
 
 ```
-kotak-project/
+car-loan-kiosk/
 ├── backend/
 │   ├── agents/                    LLM reasoner + LangGraph review graph
 │   │   ├── review_graph.py        ▸ the agentic review pipeline (6 nodes)
@@ -642,7 +642,7 @@ kotak-project/
 │   ├── app/page.tsx               AvatarProvider wrapper + stage switch
 │   ├── components/
 │   │   ├── stages/                One file per journey stage
-│   │   └── shared/                PriyaAvatar, RoadProgress, KotakHeader, TTSToggle
+│   │   └── shared/                PriyaAvatar, RoadProgress, AppHeader, TTSToggle
 │   └── lib/
 │       ├── useAvatar.ts           WebRTC hook (Azure Speech SDK)
 │       ├── avatarContext.tsx      Auto-starts session on page mount

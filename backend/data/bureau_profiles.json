@@ -85,7 +85,7 @@
     "monthly_income_verified": 35000,
     "annual_income": 420000,
     "existing_loans": [
-      { "type": "Personal Loan", "emi": 12000, "outstanding": 245000, "bank": "Kotak Bank" },
+      { "type": "Personal Loan", "emi": 12000, "outstanding": 245000, "bank": "ICICI Bank" },
       { "type": "Credit Card", "emi": 8000, "outstanding": 95000, "bank": "HDFC Bank" },
       { "type": "Consumer Loan", "emi": 6000, "outstanding": 48000, "bank": "Bajaj Finance" }
     ],

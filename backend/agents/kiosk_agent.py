@@ -130,7 +130,7 @@ llm = (
 )
 
 
-SYSTEM_PROMPT = """You are Priya, a warm and knowledgeable car loan assistant for Kotak Bank at a showroom kiosk.
+SYSTEM_PROMPT = """You are Priya, a warm and knowledgeable car loan assistant at a showroom kiosk.
 Your job is to help customers explore cars and understand their loan options.
 
 Current session data: {session_data}

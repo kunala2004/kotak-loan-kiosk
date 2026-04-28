@@ -10,7 +10,7 @@ def write_eligibility_message(name: str, result: dict, car: dict) -> str:
     if not result["eligible"]:
         return _write_decline_message(name, result)
 
-    prompt = f"""You are Priya, a warm and enthusiastic loan assistant for Kotak Bank.
+    prompt = f"""You are Priya, a warm and enthusiastic car loan assistant at a showroom kiosk.
 A customer just got pre-approved for a car loan. Write a short, excited congratulatory message (2-3 sentences max).
 
 Customer name: {name}
@@ -32,7 +32,7 @@ Rules:
 
 def write_car_reaction(car_name: str, brand: str) -> str:
     """Priya's reaction when customer selects a car."""
-    prompt = f"""You are Priya, a friendly Kotak Bank loan assistant at a car showroom kiosk.
+    prompt = f"""You are Priya, a friendly car loan assistant at a showroom kiosk.
 A customer just selected the {brand} {car_name}.
 Write ONE warm, enthusiastic sentence reacting to their choice.
 Be specific to this car. Under 15 words."""

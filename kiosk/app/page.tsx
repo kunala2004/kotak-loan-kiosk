@@ -2,7 +2,7 @@
 import { useKioskStore } from "@/lib/store"
 import { useSession } from "@/lib/useSession"
 import { AvatarProvider } from "@/lib/avatarContext"
-import KotakHeader from "@/components/shared/KotakHeader"
+import AppHeader from "@/components/shared/AppHeader"
 import RoadProgress from "@/components/shared/RoadProgress"
 import InfoPanel from "@/components/shared/InfoPanel"
 import IdleScreen from "@/components/stages/IdleScreen"
@@ -44,7 +44,7 @@ export default function KioskPage() {
     <AvatarProvider>
       <main className="w-screen h-screen relative overflow-hidden bg-[#080B14]">
         <div className="absolute inset-0 z-0 bg-gradient-to-br from-[#0D1117] via-[#080B14] to-[#0A0510] pointer-events-none" />
-        <KotakHeader />
+        <AppHeader />
         <div className="relative z-20 w-full h-full">
           <Stages />
         </div>

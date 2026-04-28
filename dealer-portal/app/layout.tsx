@@ -6,8 +6,8 @@ import NavTabs from "@/components/NavTabs"
 const geist = Geist({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Kotak Bank — Dealer Portal",
-  description: "Loan application management for Kotak Bank dealerships",
+  title: "Car Loan Kiosk — Dealer Portal",
+  description: "Loan application management for car-loan dealerships",
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -18,9 +18,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-7 h-7 bg-[#E31837] rounded-md flex items-center justify-center">
-                <span className="text-white font-black text-xs">K</span>
+                <span className="text-white font-black text-xs">C</span>
               </div>
-              <span className="font-bold text-slate-900">Kotak Bank</span>
+              <span className="font-bold text-slate-900">Car Loan Kiosk</span>
               <span className="text-slate-300">·</span>
               <span className="text-slate-500 text-sm">Dealer Portal</span>
             </div>

@@ -1,0 +1,31 @@
+# Files NOT to upload to Elastic Beanstalk
+# (similar to .gitignore but specifically for `eb deploy`)
+
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Local secrets — env vars set via EB console instead
+.env
+.env.local
+.env.*.local
+
+# Generated indexes (will be rebuilt by prebake_kb.py on deploy)
+data/_chroma/
+data/_chroma_db/
+
+# Local session data — production uses fresh state
+data/sessions.json
+
+# Dev/test artifacts
+*.log
+_test_*.json
+_final_state.json
+
+# Docs and screenshots not needed at runtime
+docs/
+*.md
+!requirements.txt

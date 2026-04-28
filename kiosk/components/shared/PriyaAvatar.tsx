@@ -15,7 +15,7 @@ const STAGE_MESSAGES: Record<string, string> = {
   phone_capture:       "Almost done. Share your number to receive your loan summary.",
   application_review:  "Everything looks great. Review and submit when you're ready.",
   waiting:             "Your application is with the dealer. We'll update you here and on your phone.",
-  celebration:         "Your car is waiting for you. Thank you for believing in Kotak.",
+  celebration:         "Your car is waiting for you. Drive safely.",
 }
 
 const PRIYA_PLACEHOLDER = "/priya-placeholder.png"

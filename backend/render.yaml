@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: kotak-backend
+    name: car-loan-kiosk-backend
     runtime: python
     plan: free
     rootDir: backend

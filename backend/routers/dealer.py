@@ -210,7 +210,7 @@ def sanction(app_id: str):
         app,
         channel="mock_sms",
         message=(
-            f"Hi {first}! Great news — your Kotak car loan is approved for "
+            f"Hi {first}! Great news — your car loan is approved for "
             f"₹{amt_l} at {rate}% p.a. Your car is waiting for you. "
             f"Visit our dealer desk to complete the paperwork."
         ),
@@ -285,7 +285,7 @@ def disburse(app_id: str):
         message=(
             f"₹{amt:,} has been disbursed to the dealer for your new "
             f"{app['car'].get('brand','')} {app['car'].get('model','')}. "
-            f"Welcome to the Kotak family!"
+            f"Drive safely!"
         ),
     )
 

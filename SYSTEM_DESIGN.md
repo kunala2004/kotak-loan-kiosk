@@ -1,11 +1,11 @@
-# Kotak Bank — End-to-End Gamified Loan Journey
+# Car Loan Kiosk — End-to-End Gamified Loan Journey
 ## Agentic System Design Document
 
 ---
 
 ## 1. What We Are Building
 
-A gamified loan kiosk system for Kotak Bank car showrooms.
+A gamified car-loan kiosk system for showroom deployments.
 
 A customer walks into a showroom, interacts with a touchscreen kiosk, talks to an AI avatar named **Priya**, selects a car, gets a real loan pre-approval — all without a single human intervening. After they leave the kiosk, a finance executive at the dealer desk collects documents digitally in 6-7 minutes and disburses the loan in 10 minutes.
 

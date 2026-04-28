@@ -116,7 +116,7 @@ async def _azure(text: str, voice: str = "en-IN-NeerjaNeural") -> bytes | None:
                     "Authorization": f"Bearer {token_res.text}",
                     "Content-Type": "application/ssml+xml",
                     "X-Microsoft-OutputFormat": "audio-16khz-128kbitrate-mono-mp3",
-                    "User-Agent": "KotakKiosk",
+                    "User-Agent": "CarLoanKiosk",
                 },
                 content=ssml.encode("utf-8"),
             )

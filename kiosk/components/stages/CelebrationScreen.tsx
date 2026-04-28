@@ -73,7 +73,7 @@ export default function CelebrationScreen() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
         >
-          Thank you for believing in <span className="font-semibold text-white">Kotak</span>.
+          Thank you and drive safely.
         </motion.p>
 
         {/* Offer card */}

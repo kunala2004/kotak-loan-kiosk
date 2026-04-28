@@ -4,21 +4,21 @@ import { useKioskStore } from "@/lib/store"
 import { STAGE_PROGRESS } from "@/lib/types"
 import TTSToggle from "./TTSToggle"
 
-export default function KotakHeader() {
+export default function AppHeader() {
   const { currentStage } = useKioskStore()
   const progress = STAGE_PROGRESS[currentStage]
   const showProgress = currentStage !== "idle"
 
   return (
     <div className="absolute top-0 left-0 right-0 z-50 px-8 py-5 flex items-center justify-between">
-      {/* Kotak Logo */}
+      {/* Logo */}
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 gradient-red rounded-xl flex items-center justify-center glow-red">
-          <span className="text-white font-black text-lg">K</span>
+          <span className="text-white font-black text-lg">C</span>
         </div>
         <div>
-          <p className="text-white font-bold text-lg leading-none">kotak</p>
-          <p className="text-white/40 text-xs">Mahindra Bank</p>
+          <p className="text-white font-bold text-lg leading-none">Car Loan</p>
+          <p className="text-white/40 text-xs">Kiosk</p>
         </div>
       </div>
 

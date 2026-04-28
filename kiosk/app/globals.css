@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  --kotak-red: #E31837;
-  --kotak-red-dark: #B01228;
-  --kotak-gold: #F5A623;
+  --brand-red: #E31837;
+  --brand-red-dark: #B01228;
+  --brand-gold: #F5A623;
   --bg-primary: #080B14;
   --bg-card: rgba(255, 255, 255, 0.04);
   --bg-card-hover: rgba(255, 255, 255, 0.08);
